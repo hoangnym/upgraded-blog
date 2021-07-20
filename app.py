@@ -1,4 +1,10 @@
 from flask import Flask, render_template
+from posts import Post
+import requests
+
+all_posts = requests.get("https://api.npoint.io/706ae5b51a7218849686").json()
+post_objects = [Post(post["id"], post["title"], post["subtitle"], post["body"]) for post in all_posts]
+print(post_objects[i]["title"] for i in range(len(all_posts)))
 
 
 app = Flask(__name__)
