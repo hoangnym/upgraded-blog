@@ -1,11 +1,37 @@
 from flask import Flask, render_template, request
 from posts import Post
 import requests
-from send_email import send_mail
+import os
+import smtplib
+
 
 all_posts = requests.get("https://api.npoint.io/706ae5b51a7218849686").json()
 post_objects = [Post(post["id"], post["title"], post["subtitle"], post["body"]) for post in all_posts]
 
+# Credentials
+RECIPIENT = os.environ.get("RECIPIENT")
+SENDER = os.environ.get("SENDER")
+SENDER_PW = os.environ.get("SENDER_PW")
+
+# Reminder: Turn on access for less secure apps in order to use this application
+def send_mail(content, recipient=RECIPIENT, sender=SENDER,
+              sender_pw=SENDER_PW, subject="New message from your personal blog"):
+    try:
+        # Establish and close connection
+        with smtplib.SMTP("smtp.gmail.com") as connection:
+            # Secure connection
+            connection.starttls()
+            # Login by providing account information
+            connection.login(user=sender, password=sender_pw)
+            # Send Mail
+            connection.sendmail(
+                from_addr=sender,
+                to_addrs=recipient,
+                msg=f"Subject:{subject}\n\n{content}"
+            )
+            print("Email successfully sent.")
+    except ConnectionError:
+        print("Could not establish connection")
 
 app = Flask(__name__)
 
@@ -31,6 +57,7 @@ def contact():
         method=request.method
     )
 
+
 @app.route('/contact', methods=["POST"])
 def receive_data():
     print(request.method)
@@ -39,11 +66,11 @@ def receive_data():
     email = data["email"]
     phone = data["phone"]
     message = data["message"]
-    content = f"Name: {name}\n" \
+    message_content = f"Name: {name}\n" \
               f"Email: {email}\n" \
               f"Phone: {phone}\n" \
               f"Message: {message}"
-    send_mail(content)
+    send_mail(message_content)
     return render_template(
         "contact.html",
         method=request.method

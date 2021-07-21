@@ -2,8 +2,7 @@ import smtplib
 import os
 
 
-def send_mail(content, recipient=os.environ.get("RECIPIENT"), sender=os.environ.get("SENDER"),
-              sender_pw=os.environ.get("SENDER_PW"), subject="New message from your personal blog"):
+def send_mail(content, recipient, sender, sender_pw, subject="New message from your personal blog"):
     try:
         # Establish and close connection
         with smtplib.SMTP("smtp.gmail.com") as connection:
